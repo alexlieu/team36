@@ -17,9 +17,7 @@ class avoid:
         self.robot_controller = MoveTB3()
         self.robot_odom = TB3Odometry()
 
-        self.front_range = 0.0
-        self.left_range = 0.0
-        self.right_range = 0.0
+        self.turn = False
 
         self.front_min_distance = 0.0
         self.left_min_distance = 0.0
@@ -75,7 +73,7 @@ class avoid:
         total_distance = 0.0
 
         while not self.ctrl_c:
-            self.robot_controller.set_move_cmd(linear=0.1)
+            self.robot_controller.set_move_cmd(linear=0.15)
             self.robot_controller.publish()
             total_distance = np.sqrt(pow(x0 - x, 2) + pow(y0 - y, 2))
             #print('SCAN_FEEDBACK: distance to closest object: {:.2f}...'.format(self.min_distance))
@@ -83,58 +81,11 @@ class avoid:
             #print('RANGE_FEEDBACK: range: {:.2f}...'.format(self.range))
             x0 = self.robot_odom.posx
             y0 = self.robot_odom.posy
+            z0 = self.robot_odom.yaw
 
             if self.front_min_distance>0.6 and self.front_min_distance<0.7 and not self.ctrl_c:
+                print("DETECTED OBJECT AHEAD")
                 self.robot_controller.stop()
-                print('DETECTED OBJECT IN FRONT')
-
-                while abs(z0-z) < pi/2:
-                    z = self.robot_odom.yaw
-                    self.robot_controller.set_move_cmd(angular=0.4)
-                    self.robot_controller.publish()
-                print('TURN FINISH')
-                self.robot_controller.stop()
-                z0 = self.robot_odom.yaw
-
-                '''
-                if self.front_min_angle<0:
-                    while abs(z0-z) < pi/2:
-                        z = self.robot_odom.yaw
-                        self.robot_controller.set_move_cmd(angular=-0.4)
-                        self.robot_controller.publish()
-                if self.front_min_angle>0:
-                    while abs(z0-z) < pi/2:
-                        z = self.robot_odom.yaw
-                        self.robot_controller.set_move_cmd(angular=0.4)
-                        self.robot_controller.publish()
-                print('TURN FINISH')
-                self.robot_controller.stop()
-                z0 = self.robot_odom.yaw
-                '''
-
-
-                '''
-                while self.front_min_distance<0.8 and not self.ctrl_c:
-                    self.robot_controller.set_move_cmd(linear=-0.1)
-                    self.robot_controller.publish()
-                '''
-
-
-                '''
-                if self.min_angle<-30:
-                    while self.range>0.6 and self.range<0.7 and not self.ctrl_c:
-                        self.robot_controller.set_move_cmd(angular=0.2)
-                        self.robot_controller.publish()
-                elif self.min_angle>30:
-                    while self.range>0.6 and self.range<0.7 and not self.ctrl_c:
-                        self.robot_controller.set_move_cmd(angular=-0.2)
-                        self.robot_controller.publish()
-                else:
-                    while self.range<0.8 and not self.ctrl_c:
-                        self.robot_controller.set_move_cmd(linear=-0.1)
-                        self.robot_controller.publish()
-                '''
-
             elif self.left_min_distance>0.2 and self.left_min_distance<0.3:
                 print("CAUGHT IN THE LEFT")
                 self.robot_controller.stop()
