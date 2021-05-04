@@ -75,41 +75,42 @@ class avoid:
         while not self.ctrl_c:
             self.robot_controller.set_move_cmd(linear=0.2)
             self.robot_controller.publish()
-            total_distance = np.sqrt(pow(x0 - x, 2) + pow(y0 - y, 2))
-            #print('ODOM_FEEDBACK: current distance travelled: {:.2f}...'.format(total_distance))
             x0 = self.robot_odom.posx
             y0 = self.robot_odom.posy
             z0 = self.robot_odom.yaw
 
 
-            if self.front_min_distance>0.3 and self.front_min_distance<0.4 and not self.ctrl_c:
+            if self.front_min_distance<0.5 and not self.ctrl_c:
                 print("DETECTED OBJECT AHEAD")
                 self.robot_controller.stop()
                 if self.front_min_angle<0:
-                    print("ANGLE IS LESS THAN 0")
-                    while self.front_min_distance>0.3 and self.front_min_distance<0.4 and not self.ctrl_c:
+                    print("| ANGLE IS LESS THAN 0")
+                    while self.front_min_distance<0.5 and not self.ctrl_c:
                         self.robot_controller.set_move_cmd(angular=-1)
                         self.robot_controller.publish()
                 elif self.front_min_angle>=0:
-                    print("ANGLE IS GREATER THAN OR EQUAL TO 0")
-                    while self.front_min_distance>0.3 and self.front_min_distance<0.4 and not self.ctrl_c:
+                    print("| ANGLE IS GREATER THAN OR EQUAL TO 0")
+                    while self.front_min_distance<0.5 and not self.ctrl_c:
                         self.robot_controller.set_move_cmd(angular=1)
                         self.robot_controller.publish()
-            elif self.left_min_distance>0.23 and self.left_min_distance<0.3:
+            elif self.left_min_distance<0.5 and self.right_min_distance<0.5 and not self.ctrl_c:
+                print("DETECTED A NARROW GAP")
+                self.robot_controller.stop()
+                while self.left_min_distance<0.5 and self.right_min_distance<0.5 and self.front_min_distance>0.7 and self.front_min_angle<10 and self.front_min_angle>-10 and not self.ctrl_c:
+                    self.robot_controller.set_move_cmd(linear=0.15)
+                    self.robot_controller.publish()
+            elif self.left_min_distance<0.35:
                 print("CAUGHT IN THE LEFT")
                 self.robot_controller.stop()
-                while self.left_min_distance>0.23 and self.left_min_distance<0.3 and not self.ctrl_c:
-                    self.robot_controller.set_move_cmd(angular=-1)
+                while self.left_min_distance<0.35 and not self.ctrl_c:
+                    self.robot_controller.set_move_cmd(angular=-0.8)
                     self.robot_controller.publish()
-            elif self.right_min_distance>0.23 and self.right_min_distance<0.3:
+            elif self.right_min_distance<0.35:
                 print("CAUGHT IN THE RIGHT")
                 self.robot_controller.stop()
-                while self.right_min_distance>0.23 and self.right_min_distance<0.3 and not self.ctrl_c:
-                    self.robot_controller.set_move_cmd(angular=1)
+                while self.right_min_distance<0.35 and not self.ctrl_c:
+                    self.robot_controller.set_move_cmd(angular=0.8)
                     self.robot_controller.publish()
-
-
-
 
 
 if __name__ == '__main__':
