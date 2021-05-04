@@ -73,12 +73,11 @@ class avoid:
         total_distance = 0.0
 
         while not self.ctrl_c:
-            self.robot_controller.set_move_cmd(linear=0.2)
+            self.robot_controller.set_move_cmd(linear=0.26)
             self.robot_controller.publish()
             x0 = self.robot_odom.posx
             y0 = self.robot_odom.posy
             z0 = self.robot_odom.yaw
-
 
             if self.front_min_distance<0.5 and not self.ctrl_c:
                 print("DETECTED OBJECT AHEAD")
@@ -96,19 +95,19 @@ class avoid:
             elif self.left_min_distance<0.5 and self.right_min_distance<0.5 and not self.ctrl_c:
                 print("DETECTED A NARROW GAP")
                 self.robot_controller.stop()
-                while self.left_min_distance<0.5 and self.right_min_distance<0.5 and self.front_min_distance>0.7 and self.front_min_angle<10 and self.front_min_angle>-10 and not self.ctrl_c:
-                    self.robot_controller.set_move_cmd(linear=0.15)
+                while self.left_min_distance<0.5 and self.right_min_distance<0.5 and self.front_min_distance>0.6 and self.front_min_angle<10 and self.front_min_angle>-10 and not self.ctrl_c:
+                    self.robot_controller.set_move_cmd(linear=0.2)
                     self.robot_controller.publish()
-            elif self.left_min_distance<0.35:
+            elif self.left_min_distance<0.37:
                 print("CAUGHT IN THE LEFT")
                 self.robot_controller.stop()
-                while self.left_min_distance<0.35 and not self.ctrl_c:
+                while self.left_min_distance<0.37 and not self.ctrl_c:
                     self.robot_controller.set_move_cmd(angular=-0.8)
                     self.robot_controller.publish()
-            elif self.right_min_distance<0.35:
+            elif self.right_min_distance<0.37:
                 print("CAUGHT IN THE RIGHT")
                 self.robot_controller.stop()
-                while self.right_min_distance<0.35 and not self.ctrl_c:
+                while self.right_min_distance<0.37 and not self.ctrl_c:
                     self.robot_controller.set_move_cmd(angular=0.8)
                     self.robot_controller.publish()
 
