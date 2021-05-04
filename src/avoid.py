@@ -9,6 +9,7 @@ import datetime as dt
 import os
 import numpy as np
 
+#test comment
 class avoid:
     def __init__(self):
         self.scan_sub = rospy.Subscriber('/scan', LaserScan, self.scan_callback)
