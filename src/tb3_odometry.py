@@ -15,10 +15,20 @@ class TB3Odometry(object):
         self.posx = self.round(position.x, 4)
         self.posy = self.round(position.y, 4)
 
+        if self.startup:
+            self.startup = False
+            self.posx0 = self.posx
+            self.posy0 = self.posy
+            self.yaw0 = self.yaw
+
     def __init__(self):
+        self.startup = True
         self.posx = 0.0
         self.posy = 0.0
         self.yaw = 0.0
+        self.posx0 = 0.0
+        self.posy0 = 0.0
+        self.yaw0 = 0.0
         self.subscriber = rospy.Subscriber('/odom', Odometry, self.odom_cb)
 
     def round(self, value, precision):

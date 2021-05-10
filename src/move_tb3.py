@@ -11,10 +11,10 @@ class MoveTB3(object):
     def set_move_cmd(self, linear = 0.0, angular = 0.0):
         self.vel_cmd.linear.x = linear
         self.vel_cmd.angular.z = angular
-    
+
     def publish(self):
         self.publisher.publish(self.vel_cmd)
-    
+
     def stop(self):
         self.set_move_cmd()
         self.publish()

@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="team36" type="object_detection.py" name="object_detection_node" output="screen">
+  </node>
+</launch>

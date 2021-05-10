@@ -85,31 +85,41 @@ class avoid:
                 if self.front_min_angle<0:
                     print("| ANGLE IS LESS THAN 0")
                     while self.front_min_distance<0.5 and not self.ctrl_c:
-                        self.robot_controller.set_move_cmd(angular=-1)
+                        self.robot_controller.set_move_cmd(angular=-0.5)
                         self.robot_controller.publish()
                 elif self.front_min_angle>=0:
                     print("| ANGLE IS GREATER THAN OR EQUAL TO 0")
                     while self.front_min_distance<0.5 and not self.ctrl_c:
-                        self.robot_controller.set_move_cmd(angular=1)
+                        self.robot_controller.set_move_cmd(angular=0.5)
                         self.robot_controller.publish()
-            elif self.left_min_distance<0.5 and self.right_min_distance<0.5 and not self.ctrl_c:
+            elif self.left_min_distance<=0.5 and self.right_min_distance<=0.5 and not self.ctrl_c:
                 print("DETECTED A NARROW GAP")
                 self.robot_controller.stop()
-                while self.left_min_distance<0.5 and self.right_min_distance<0.5 and self.front_min_distance>0.6 and self.front_min_angle<10 and self.front_min_angle>-10 and not self.ctrl_c:
-                    self.robot_controller.set_move_cmd(linear=0.2)
-                    self.robot_controller.publish()
+                while self.left_min_distance<=0.5 and self.right_min_distance<=0.5 and not abs(abs(self.left_min_angle) - abs(self.right_min_angle))<=5 and not self.ctrl_c:
+                    # self.left_min_angle == -61 and self.right_min_angle == 60
+                    # self.left_min_angle != self.right_min_angle
+                    if abs(self.left_min_angle) > abs(self.right_min_angle):
+                        print("CASE 1")
+                        self.robot_controller.set_move_cmd(angular=0.1)
+                        self.robot_controller.publish()
+                    else:
+                        print("CASE 2")
+                        self.robot_controller.set_move_cmd(angular=-0.1)
+                        self.robot_controller.publish()
+                print("EQUALITY")
             elif self.left_min_distance<0.37:
                 print("CAUGHT IN THE LEFT")
                 self.robot_controller.stop()
                 while self.left_min_distance<0.37 and not self.ctrl_c:
-                    self.robot_controller.set_move_cmd(angular=-0.8)
+                    self.robot_controller.set_move_cmd(angular=-0.5)
                     self.robot_controller.publish()
             elif self.right_min_distance<0.37:
                 print("CAUGHT IN THE RIGHT")
                 self.robot_controller.stop()
                 while self.right_min_distance<0.37 and not self.ctrl_c:
-                    self.robot_controller.set_move_cmd(angular=0.8)
+                    self.robot_controller.set_move_cmd(angular=0.5)
                     self.robot_controller.publish()
+
 
 
 if __name__ == '__main__':
