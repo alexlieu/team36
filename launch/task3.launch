@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="team36" type="search_beaconing.py" name="search_beaconing_node" output="screen">
+  </node>
+</launch>
