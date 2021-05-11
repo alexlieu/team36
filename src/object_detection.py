@@ -20,6 +20,7 @@ class object_detection:
         self.turn_right_180 = False
         self.found_colour = False
         self.forward = True
+
         self.forward_speed = 0.2
         self.turn_speed = 0.3
 
@@ -36,11 +37,12 @@ class object_detection:
         self.m00 = 0
         self.m00_min = 10000
 
-        self.lower = [(115, 224, 100), (0, 185, 100), (25, 150, 100), (75, 150, 100)]
-        self.upper = [(130, 255, 255), (10, 255, 255), (70, 255, 255), (100, 255, 255)]
+        self.colours = ['Blue','Red','Green','Turquoise','Yellow','Purple']
+        self.lower = [(115, 224, 100), (0, 185, 100), (55, 150, 100), (75, 50, 150), (20, 100, 100), (146, 150, 100)]
+        self.upper = [(130, 255, 255), (10, 255, 255), (62, 255, 255), (100, 255, 255), (30, 255, 255), (153, 255, 255)]
 
         self.mask = None
-        self.max = 0
+        self.max_white_space_index = 0
 
     def camera_callback(self, img_data):
         try:
@@ -57,20 +59,18 @@ class object_detection:
         crop_img = cv_img[crop_y:crop_y+crop_height, crop_x:crop_x+crop_width]
         hsv_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2HSV)
 
-        colours = ['Blue','Red','Green','Turquoise']
-
         if self.startup:
-            white_space = [None]*4
-            for i in range(4):
+            white_space = [None]*6
+            for i in range(6):
                 mask = cv2.inRange(hsv_img, self.lower[i], self.upper[i])
                 white_space[i] = cv2.countNonZero(mask)
-            self.max = white_space.index(max(white_space))
-            self.mask = cv2.inRange(hsv_img, self.lower[self.max], self.upper[self.max])
-            print("SEARCH INITIATED: The target colour is "+colours[self.max])
+            self.max_white_space_index = white_space.index(max(white_space))
+            self.mask = cv2.inRange(hsv_img, self.lower[self.max_white_space_index], self.upper[self.max_white_space_index])
+            print("SEARCH INITIATED: The target colour is " + self.colours[self.max_white_space_index])
             self.turn_left_90 = True
             self.startup = False
         else:
-            self.mask = cv2.inRange(hsv_img, self.lower[self.max], self.upper[self.max])
+            self.mask = cv2.inRange(hsv_img, self.lower[self.max_white_space_index], self.upper[self.max_white_space_index])
 
         m = cv2.moments(self.mask)
 
@@ -96,24 +96,24 @@ class object_detection:
                 self.robot_controller.set_move_cmd(linear=self.forward_speed)
                 if sqrt(pow(self.robot_odom.posx0 - self.robot_odom.posx, 2) + pow(self.robot_odom.posy0 - self.robot_odom.posy, 2)) >= 1:
                     self.robot_controller.stop()
-                    self.forward = False
-                    self.turn_right_180 = True
                     self.robot_odom.posx0 = self.robot_odom.posx
                     self.robot_odom.posy0 = self.robot_odom.posy
+                    self.forward = False
+                    self.turn_right_180 = True
             elif self.turn_right_180 == True:
                 self.robot_controller.set_move_cmd(angular=-self.turn_speed)
                 if abs(self.robot_odom.yaw0 - self.robot_odom.yaw) >= 180:
-                    self.turn_right_180 = False
                     self.robot_controller.stop()
                     self.robot_odom.yaw0 = self.robot_odom.yaw
+                    self.turn_right_180 = False
                     self.startup = True
             elif self.turn_left_90 == True:
                 self.robot_controller.set_move_cmd(angular=self.turn_speed)
                 if abs(self.robot_odom.yaw0 - self.robot_odom.yaw) >= 90:
                     self.robot_controller.stop()
+                    self.robot_odom.yaw0 = self.robot_odom.yaw
                     self.turn_left_90 = False
                     self.turn_left_180 = True
-                    self.robot_odom.yaw0 = self.robot_odom.yaw
             elif self.turn_left_180 == True:
                 self.robot_controller.set_move_cmd(angular=self.turn_speed)
                 if self.m00 > self.m00_min:
@@ -123,8 +123,10 @@ class object_detection:
                         self.found_colour = True
                 if abs(self.robot_odom.yaw0 - self.robot_odom.yaw) >= 180:
                     self.robot_controller.stop()
-                    self.turn_left_90 = False
                     self.robot_odom.yaw0 = self.robot_odom.yaw
+                    self.turn_left_180 = False
+                    print("SEARCH FAILED: A pillar of target colour " + self.colours[self.max_white_space_index] + " is not present.")
+                    self.ctrl_c = True
             elif self.found_colour == True:
                 print("SEARCH COMPLETE: The robot is now facing the target pillar.")
                 self.ctrl_c = True
