@@ -17,6 +17,13 @@ class search_beaconing:
         self.detect_colour = False
         self.found_colour = False
 
+        self.bootup = True
+        self.start_bootup = True
+
+        self.search = False
+        self.start_search = False
+        self.searching = False
+
         self.forward_speed = 0.2
         self.turn_speed = 0.3
 
@@ -72,6 +79,8 @@ class search_beaconing:
             self.max_white_space_index = white_space.index(max(white_space))
             self.mask = cv2.inRange(hsv_img, self.lower[self.max_white_space_index], self.upper[self.max_white_space_index])
             print("SEARCH INITIATED: The target colour is " + self.colours[self.max_white_space_index])
+            self.start_search = True
+            self.search = True
             self.detect_colour = False
         else:
             self.mask = cv2.inRange(hsv_img, self.lower[self.max_white_space_index], self.upper[self.max_white_space_index])
@@ -118,9 +127,142 @@ class search_beaconing:
     def shutdown_function(self):
         self.robot_controller.stop()
 
+    def has_moved_distance(self, distance):
+        if sqrt(pow(self.robot_odom.posx0 - self.robot_odom.posx, 2) + pow(self.robot_odom.posy0 - self.robot_odom.posy, 2)) >= distance:
+            return True
+        else:
+            return False
+
+    def has_turned_angle(self, angle):
+        if abs(self.robot_odom.yaw0 - self.robot_odom.yaw) >= angle:
+            return True
+        else:
+            return False
+
+    def detect_obj_front(self, angle_l, angle_r, distance):
+        if self.front_min_angle >= angle_l and self.front_min_angle <= angle_r and self.front_min_distance <= distance:
+            return True
+        else:
+            return False
+
+    def detect_obj_left(self, angle_l, angle_r, distance):
+        if self.left_min_angle >= angle_l and self.left_min_angle <= angle_r and self.left_min_distance <= distance:
+            return True
+        else:
+            return False
+
+    def detect_obj_right(self, angle_l, angle_r, distance):
+        if self.right_min_angle >= angle_l and self.right_min_angle <= angle_r and self.right_min_distance <= distance:
+            return True
+        else:
+            return False
+
+    def set_coordinate(self):
+        self.robot_odom.posx0 = self.robot_odom.posx
+        self.robot_odom.posy0 = self.robot_odom.posy
+
+    def set_orientation(self):
+        self.robot_odom.yaw0 = self.robot_odom.yaw
+
     def main_loop(self):
+        check_walls = True
+        arc_scan = False
+        face = False
+
         while not self.ctrl_c:
-            print("Working")
+            if self.bootup == True:
+                if self.start_bootup == True:
+                    self.robot_controller.set_move_cmd(linear=self.forward_speed)
+                    if self.has_moved_distance(0.5):
+                        self.robot_controller.stop()
+                        self.set_coordinate()
+                        self.start_bootup = False
+                else:
+                    if self.robot_odom.yaw0 < 0:
+                        self.robot_controller.set_move_cmd(angular=self.turn_speed)
+                    else:
+                        self.robot_controller.set_move_cmd(angular=-self.turn_speed)
+                    if self.has_turned_angle(180):
+                        self.robot_controller.stop()
+                        self.set_orientation()
+                        self.bootup = False
+                        self.detect_colour = True
+            elif self.search == True:
+                if self.start_search == True:
+                    wall_right = False
+                    wall_left = True
+                    if check_walls == True:
+                        if self.detect_obj_right(50, 60, 0.7):
+                            wall_right = True
+                            check_walls = False
+                        else:
+                            wall_left = True
+                            check_walls = False
+                    else:
+                        if wall_right == True:
+                            self.robot_controller.set_move_cmd(angular=self.turn_speed)
+                            if self.has_turned_angle(90):
+                                self.robot_controller.stop()
+                                self.set_orientation()
+                                self.set_coordinate()
+                                self.start_search = False
+                                self.searching = True
+                        if wall_left == True:
+                            self.robot_controller.set_move_cmd(angular=-self.turn_speed)
+                            if self.has_turned_angle(90):
+                                self.robot_controller.stop()
+                                self.set_orientation()
+                                self.set_coordinate()
+                                self.start_search = False
+                                self.searching = True
+                elif self.searching == True:
+                    self.robot_controller.set_move_cmd(linear=self.forward_speed)
+                    if arc_scan == True:
+                        if face == True:
+                            self.robot_controller.set_move_cmd(angular=self.turn_speed)
+                            if self.robot_odom.yaw == self.robot_odom.start_point_yaw:
+                                self.robot_controller.stop()
+                                self.set_orientation()
+                                self.set_coordinate()
+                                face = False
+                        else:
+                            self.robot_controller.set_move_cmd(angular=-self.turn_speed)
+                            if self.has_turned_angle(180):
+                                self.robot_controller.stop()
+                                self.set_orientation()
+                                self.set_coordinate()
+                                arc_scan = False
+                    else:
+                        if self.has_moved_distance(2):
+                            self.robot_controller.stop()
+                            print("START SCANNING")
+                            face = True
+                            arc_scan = True
+                        if self.front_min_distance<0.7:
+                            self.robot_controller.stop()
+                            if self.front_min_angle<0:
+                                while self.front_min_distance<0.7:
+                                    self.robot_controller.set_move_cmd(angular=-0.5)
+                                    self.robot_controller.publish()
+                            elif self.front_min_angle>=0:
+                                while self.front_min_distance<0.7:
+                                    self.robot_controller.set_move_cmd(angular=0.5)
+                                    self.robot_controller.publish()
+                        elif self.left_min_distance<0.37:
+                            self.robot_controller.stop()
+                            while self.left_min_distance<0.37:
+                                self.robot_controller.set_move_cmd(angular=-0.5)
+                                self.robot_controller.publish()
+                        elif self.right_min_distance<0.37:
+                            self.robot_controller.stop()
+                            while self.right_min_distance<0.37:
+                                self.robot_controller.set_move_cmd(angular=0.5)
+                                self.robot_controller.publish()
+
+
+            # print("current odometry: x = {:.3f}, y = {:.3f}, theta_z = {:.3f}".format(self.robot_odom.posx, self.robot_odom.posy, self.robot_odom.yaw))
+
+            self.robot_controller.publish()
 
 if __name__ == '__main__':
     search_beaconing_instance = search_beaconing()
