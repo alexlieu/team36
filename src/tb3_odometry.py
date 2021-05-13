@@ -20,9 +20,13 @@ class TB3Odometry(object):
             self.posx0 = self.posx
             self.posy0 = self.posy
             self.yaw0 = self.yaw
+            self.originx = self.posx
+            self.originy = self.posy
 
     def __init__(self):
         self.startup = True
+        self.originx = 0.0
+        self.originy = 0.0
         self.posx = 0.0
         self.posy = 0.0
         self.yaw = 0.0
