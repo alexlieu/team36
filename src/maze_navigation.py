@@ -26,6 +26,8 @@ class maze_navigation:
         self.forward_speed = 0.2
         self.turn_speed = 0.3
 
+        self.scan_sub = rospy.Subscriber('/scan', LaserScan, self.scan_callback)
+
         rospy.init_node('maze_navigation_node', anonymous=True)
         self.rate = rospy.Rate(10)
         self.robot_controller = MoveTB3()
@@ -38,6 +40,9 @@ class maze_navigation:
         self.front_min_angle = 0.0
         self.left_min_angle = 0.0
         self.right_min_angle = 0.0
+
+        self.origin_x = 0.0
+        self.origin_y = 0.0
 
         self.ctrl_c = False
         rospy.on_shutdown(self.shutdownhook)
@@ -66,6 +71,12 @@ class maze_navigation:
         self.right_min_distance = right_front_arc.min()
         self.right_min_angle = right_arc_angles[np.argmin(right_front_arc)]
 
+    def detect_obj_front(self, angle_l, angle_r, distance):
+        if self.front_min_angle >= angle_l and self.front_min_angle <= angle_r and self.front_min_distance <= distance:
+            return True
+        else:
+            return False
+
     def shutdownhook(self):
         self.shutdown_function()
         self.ctrl_c = True
@@ -82,8 +93,6 @@ class maze_navigation:
 
                 if self.front_min_distance < 0.5 and self.front_min_angle > -5 and self.front_min_angle < 5 and self.front_min_distance != 0 and self.front_min_angle != 0:
 
-                    print (self.front_min_distance)
-                    print (self.front_min_angle)
                     print ("Front - Detected Object")
 
                     self.robot_controller.stop()
