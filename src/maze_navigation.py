@@ -20,7 +20,6 @@ class maze_navigation:
         self.turn_left_180 = False
         self.turn_right_180 = False
         self.forward = True
-        self.object_near = False
         self.found_wall = False
         self.following_wall = False
 
@@ -29,8 +28,6 @@ class maze_navigation:
 
         rospy.init_node('maze_navigation_node', anonymous=True)
         self.rate = rospy.Rate(10)
-        self.camera_subscriber = rospy.Subscriber("/camera/rgb/image_raw", Image, self.camera_callback)
-        self.cvbridge_interface = CvBridge()
         self.robot_controller = MoveTB3()
         self.robot_odom = TB3Odometry()
 
@@ -44,21 +41,6 @@ class maze_navigation:
 
         self.ctrl_c = False
         rospy.on_shutdown(self.shutdownhook)
-
-    def camera_callback(self, img_data): # code just copied and deleted for now
-        try:
-            cv_img = self.cvbridge_interface.imgmsg_to_cv2(img_data, desired_encoding="bgr8")
-        except CvBridgeError as e:
-            print(e)
-
-        height, width, channels = cv_img.shape
-        crop_width = width - 800
-        crop_height = 400
-        crop_x = int((width/2) - (crop_width/2))
-        crop_y = int((height/2) - (crop_height/2))
-
-        crop_img = cv_img[crop_y:crop_y+crop_height, crop_x:crop_x+crop_width]
-        hsv_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2HSV)
 
     def scan_callback(self, scan_data):
         angle_tolerance = 5
@@ -98,11 +80,12 @@ class maze_navigation:
                 print ("Going Forward")
                 self.robot_controller.set_move_cmd(linear=self.forward_speed)
 
-                if self.front_min_distance < 0.5 and self.front_min_angle > -5 and self.front_min_angle < 5:
-                    #self.object_near = True
+                if self.front_min_distance < 0.5 and self.front_min_angle > -5 and self.front_min_angle < 5 and self.front_min_distance != 0 and self.front_min_angle != 0:
+
+                    print (self.front_min_distance)
+                    print (self.front_min_angle)
                     print ("Front - Detected Object")
 
-                if self.object_near == True:
                     self.robot_controller.stop()
                     self.forward = False
                     self.found_wall = True
@@ -121,6 +104,7 @@ class maze_navigation:
 
             elif self.following_wall == True:
                 print ("Following Wall")
+                self.following_wall = False
 
                 # To do:
                 # 1. Set off and find wall
