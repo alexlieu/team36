@@ -86,7 +86,7 @@ class maze_navigation:
 
     def main_loop(self):
         while not self.ctrl_c:
-            if self.forward == True:
+            if self.forward == True: # Set off out start zone
 
                 print ("Going Forward")
                 self.robot_controller.set_move_cmd(linear=self.forward_speed)
@@ -99,19 +99,24 @@ class maze_navigation:
                     self.forward = False
                     self.found_wall = True
 
-            elif self.found_wall == True:
+            elif self.found_wall == True: # Find a wall
                 print ("Found Wall")
                 self.found_wall = False
                 self.turn_right_90 = True
 
-            elif self.turn_right_90 == True:
+            elif self.turn_right_90 == True: # Turn right
                 print ("Turning Right")
                 self.robot_controller.stop()
                 self.robot_odom.yaw0 = self.robot_odom.yaw
+
+                self.robot_controller.set_move_cmd(angular=-0.4)
+                if self.has_turned_angle(90):
+                    self.robot_controller.stop()
+
                 self.turn_right_90 = False
                 self.following_wall = True
 
-            elif self.following_wall == True:
+            elif self.following_wall == True: # Follow wall - go parallel to wall
                 print ("Following Wall")
                 self.following_wall = False
 
@@ -121,6 +126,7 @@ class maze_navigation:
                 # 3. Move forward, avoid hitting wall
 
 
+            # final task - stop in end zone
             # Include in final step of if statement - self.ctrl_c = True
             self.robot_controller.publish()
 
