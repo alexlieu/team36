@@ -27,25 +27,15 @@ class search_beaconing:
 
         self.start_position = False
 
-        self.scan_interval = 4.5
-        # start_position B
-        # scan_interval 3
-        # x = -1.2409, y = 2.0656
-        #
-        # start_position C
-        # x = 2.0684, y = 1.9707
-        # scan_interval 1.5
-        #
-        # start_position A
-        # x = -2.078, y = -1.47
-        # scan_interval 1.5
+        self.scan_interval = 3.9
+
         self.search = False
 
         self.jiggle_counter_l = 0
         self.jiggle_counter_r = 0
         self.reset_jiggle_counter = False
 
-        self.test3 = False
+        self.test = False
         self.test1 = False
         self.test2 = False
 
@@ -162,23 +152,6 @@ class search_beaconing:
         else:
             return False
 
-    def has_moved_vertical_distance(self, distance):
-        if abs(self.robot_odom.posy0 - self.robot_odom.posy) >= distance:
-            return True
-        else:
-            return False
-
-    def move_distance(self, distance):
-        self.robot_controller.stop()
-        self.set_coordinate()
-        self.set_orientation()
-        if not self.has_moved_distance(distance):
-            self.robot_controller.set_move_cmd(self.forward_speed,0)
-        else:
-            self.set_coordinate()
-            self.set_orientation()
-
-
     def has_turned_angle(self, angle):
         if abs(self.robot_odom.yaw0 - self.robot_odom.yaw) >= angle:
             return True
@@ -215,29 +188,6 @@ class search_beaconing:
 
     def set_orientation(self):
         self.robot_odom.yaw0 = self.robot_odom.yaw
-
-    def start_zone_A(self):
-        half_width = 1
-        x1 = self.robot_odom.originx - half_width
-        x2 = self.robot_odom.originx + half_width
-        y1 = self.robot_odom.originy - half_width
-        y2 = self.robot_odom.originy + half_width
-        if self.robot_odom.posx >= x1 and self.robot_odom.posx <= x2 and self.robot_odom.posy >= y1 and self.robot_odom.posy <= y2:
-            return True
-        else:
-            return False
-
-    def start_zone_C(self):
-        half_width = 1
-        x1 = self.robot_odom.originx - half_width
-        x2 = self.robot_odom.originx + half_width
-        y1 = self.robot_odom.originy - half_width
-        y2 = self.robot_odom.originy + half_width
-        if self.robot_odom.posx >= x1 and self.robot_odom.posx <= x2 and self.robot_odom.posy >= y1 and self.robot_odom.posy <= y2:
-            return True
-        else:
-            return False
-
 
     def in_exclusion_zone(self):
         half_width = 1
@@ -308,21 +258,17 @@ class search_beaconing:
             elif self.search == True:
                 #print("jiggle counter: l = {:.3f}, r = {:.3f}".format(self.jiggle_counter_l, self.jiggle_counter_r))
                 print("distance travelled: d = {:.3f}".format(sqrt(pow(self.robot_odom.posx0 - self.robot_odom.posx, 2) + pow(self.robot_odom.posy0 - self.robot_odom.posy, 2))))
-                #print("vertical distance travelled: d = {:.3f}".format(abs(self.robot_odom.posy0 - self.robot_odom.posy)))
                 if scan == True:
                     print("scanning")
-                    if self.count < 190000:
+                    if self.count < 100000:
                         self.robot_controller.set_move_cmd(angular=0.3)
-
                         if self.m00 > self.m00_min:
                             if self.cy >= 560-100 and self.cy <= 560+100:
-                                print("BEACON DETECTED: Beaconing initiated.")
                                 print(self.robot_odom.originx)
                                 print(self.robot_odom.originy)
                                 self.robot_controller.stop()
                                 self.search = False
                                 self.test1 = True
-                                scan = False
                         self.count += 1
                     else:
                         self.robot_controller.stop()
@@ -331,7 +277,7 @@ class search_beaconing:
                         self.count = 0
                         scan = False
                 else:
-                    if self.has_moved_distance(self.scan_interval): #self.has_moved_vertical_distance(2):
+                    if self.has_moved_distance(self.scan_interval):
                         self.robot_controller.stop()
                         self.set_orientation()
                         self.set_coordinate()
@@ -359,37 +305,42 @@ class search_beaconing:
                                 elif escape_corner == True:
                                     if self.front_min_angle < 0:
                                         self.robot_controller.set_move_cmd(angular=-self.turn_speed)
+                                        if self.has_turned_angle(90):
+                                            self.robot_controller.stop()
+                                            escape_corner = False
+                                            self.reset_jiggle_counter = True
                                     else:
                                         self.robot_controller.set_move_cmd(angular=self.turn_speed)
+                                        if self.has_turned_angle(90):
+                                            self.robot_controller.stop()
+                                            escape_corner = False
+                                            self.reset_jiggle_counter = True
             elif self.test1 == True:
-                if not self.in_exclusion_zone():
-                    if self.detect_obj_front(-20,20,0.4):
-                        self.robot_controller.set_move_cmd(0.15, 0)
-                        if self.detect_obj_front(-20,20,0.3):
-                            print("BEACONING COMPLETE: The robot has now stopped.")
-                            self.robot_controller.stop()
-                            self.ctrl_c = True
-                    else:
-                        self.robot_controller.set_move_cmd(self.forward_speed, 0)
-                else:
+                self.robot_controller.set_move_cmd(linear=self.forward_speed)
+                if self.in_exclusion_zone():
                     self.robot_controller.stop()
                     self.test1 = False
                     self.test2 = True
+                elif self.detect_obj_front(-20,20,0.4) and not self.in_exclusion_zone():
+                    print("there now")
+                    self.ctrl_c = True
             elif self.test2 == True:
-                self.robot_controller.set_move_cmd(angular=self.turn_speed)
-                print(self.robot_odom.yaw)
-                if self.robot_odom.yaw >= 90:
-                    self.robot_controller.stop()
-                    print("turned away")
-                    self.set_orientation()
-                    self.set_coordinate()
-                    self.robot_controller.stop()
-                    self.test2 = False
-                    self.test3 = True
-
-                """
                 if self.count < 150000:
                     self.robot_controller.set_move_cmd(angular=self.turn_speed)
+                    """
+                    if self.detect_obj_left(-90,-71,0.5):
+                        wall_adjustment = True
+                        if wall_adjustment == True:
+                            self.robot_controller.set_move_cmd(angular=-0.4)
+                            if self.left_min_angle == -90:
+                                wall_adjustment = False
+                    elif self.detect_obj_right(70,90,0.5):
+                        wall_adjustment = True
+                        if wall_adjustment == True:
+                            self.robot_controller.set_move_cmd(angular=0.4)
+                            if self.right_min_angle == 90:
+                                wall_adjustment = False
+                    """
                     self.count += 1
                 else:
                     self.count = 0
@@ -398,27 +349,18 @@ class search_beaconing:
                     self.set_coordinate()
                     self.robot_controller.stop()
                     self.test2 = False
-                    self.test3 = True
-                """
-            elif self.test3 == True:
-                if self.count < 130000:
-                    self.robot_controller.set_move_cmd(angular=self.turn_speed)
-                    self.count += 1
-                    if self.m00 > self.m00_min:
-                        if self.cy >= 560-100 and self.cy <= 560+100:
-                            print("BEACON DETECTED: Beaconing initiated.")
-                            self.robot_controller.stop()
-                            self.test2 = False
-                            self.test1 = True
-                else:
-                    self.count = 0
-                    print("scan turned away")
-                    self.set_orientation()
-                    self.set_coordinate()
-                    self.robot_controller.stop()
-                    self.scan_interval += 1.5
-                    self.test3 = False
-                    self.search = True
+
+            """
+            elif self.test == True:
+                self.robot_controller.set_move_cmd(angular=-self.turn_speed)
+                if self.m00 > self.m00_min:
+                    if self.cy >= 560-100 and self.cy <= 560+100:
+                        print(self.robot_odom.originx)
+                        print(self.robot_odom.originy)
+                        self.robot_controller.stop()
+                        self.test = False
+                        self.test1 = True
+            """
 
 
 
