@@ -71,6 +71,29 @@ class maze_navigation:
         self.right_min_distance = right_front_arc.min()
         self.right_min_angle = right_arc_angles[np.argmin(right_front_arc)]
 
+    def set_coordinate(self):
+        self.robot_odom.posx0 = self.robot_odom.posx
+        self.robot_odom.posy0 = self.robot_odom.posy
+
+    def set_orientation(self):
+        self.robot_odom.yaw0 = self.robot_odom.yaw
+
+    def has_turned_angle(self, angle):
+        print ("Yaw 0 - ")
+        print (self.robot_odom.yaw0)
+        print "Yaw - "
+        print (self.robot_odom.yaw)
+        #print ("Angle - ")
+        #print (angle)
+
+
+        if abs(self.robot_odom.yaw0 - self.robot_odom.yaw) >= angle:
+            #print ("Yaw0 - Yaw >= Angle")
+            return True
+        else:
+            #print ("Yaw0 - Yaw not >= Angle")
+            return False
+
     def detect_obj_front(self, angle_l, angle_r, distance):
         if self.front_min_angle >= angle_l and self.front_min_angle <= angle_r and self.front_min_distance <= distance:
             return True
@@ -110,11 +133,14 @@ class maze_navigation:
                 self.robot_odom.yaw0 = self.robot_odom.yaw
 
                 self.robot_controller.set_move_cmd(angular=-0.4)
+
                 if self.has_turned_angle(90):
                     self.robot_controller.stop()
+                    print ("STOPPING ROBOT")
 
-                self.turn_right_90 = False
-                self.following_wall = True
+                    #self.turn_right_90 = False
+
+                    #self.following_wall = True
 
             elif self.following_wall == True: # Follow wall - go parallel to wall
                 print ("Following Wall")
