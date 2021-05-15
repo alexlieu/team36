@@ -25,7 +25,7 @@ class avoid:
 
         self.front_min_angle = 0.0
         self.left_min_angle = 0.0
-        self.right_min_angle = 0.0
+        self.right_min_angle = 0.
 
         self.ctrl_c = False
         rospy.on_shutdown(self.shutdownhook)
