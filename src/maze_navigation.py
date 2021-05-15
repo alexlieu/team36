@@ -148,7 +148,7 @@ class maze_navigation:
                 self.turn_right_90 = True
 
             elif self.turn_right_90 == True: # Turn right
-                print ("Turning Right")
+                #print ("Turning Right")
                 self.robot_controller.stop()
                 self.robot_odom.yaw0 = self.robot_odom.yaw
                 self.set_orientation()
@@ -171,8 +171,9 @@ class maze_navigation:
                             self.set_orientation()
                             self.set_coordinate()
 
-                            self.turn_right_90 = False
-                            self.following_wall = True
+                else:
+                    self.turn_right_90 = False
+                    self.following_wall = True
 
                     #self.turn_right_90 = False
 
@@ -181,6 +182,13 @@ class maze_navigation:
             elif self.following_wall == True: # Follow wall - go parallel to wall
                 print ("Following Wall")
                 self.following_wall = False
+
+                #self.robot_controller.stop()
+                self.robot_odom.yaw0 = self.robot_odom.yaw
+                #self.robot_controller.set_move_cmd(linear=self.forward_speed)
+
+                self.set_orientation()
+                self.set_coordinate()
 
                 # To do:
                 # 1. Set off and find wall
