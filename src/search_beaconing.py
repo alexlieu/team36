@@ -209,18 +209,6 @@ class search_beaconing:
         else:
             return False
 
-    def detect_corner_left(self, angle_l, angle_r, distance):
-        if self.corner_left_min_angle >= angle_l and self.corner_left_min_angle <= angle_r and self.corner_left_min_distance <= distance:
-            return True
-        else:
-            return False
-
-    def detect_corner_right(self, angle_l, angle_r, distance):
-        if self.corner_right_min_angle >= angle_l and self.corner_right_min_angle <= angle_r and self.corner_right_min_distance <= distance:
-            return True
-        else:
-            return False
-
     def set_coordinate(self):
         self.robot_odom.posx0 = self.robot_odom.posx
         self.robot_odom.posy0 = self.robot_odom.posy
