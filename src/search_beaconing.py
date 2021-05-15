@@ -27,6 +27,7 @@ class search_beaconing:
 
         self.start_position = False
 
+<<<<<<< HEAD
         self.scan_interval = 4.5
         # start_position B
         # scan_interval 3
@@ -39,6 +40,9 @@ class search_beaconing:
         # start_position A
         # x = -2.078, y = -1.47
         # scan_interval 1.5
+=======
+        self.scan_interval = 3.9
+>>>>>>> 0391a3dcd18ee86f022e4f9aa6ff1e66e217f835
 
         self.search = False
 
@@ -46,7 +50,11 @@ class search_beaconing:
         self.jiggle_counter_r = 0
         self.reset_jiggle_counter = False
 
+<<<<<<< HEAD
         self.test3 = False
+=======
+        self.test = False
+>>>>>>> 0391a3dcd18ee86f022e4f9aa6ff1e66e217f835
         self.test1 = False
         self.test2 = False
 
@@ -280,7 +288,10 @@ class search_beaconing:
         if self.start_bootup == True:
             self.robot_controller.set_move_cmd(linear=self.forward_speed)
             if self.has_moved_distance(0.5):
+<<<<<<< HEAD
                 """
+=======
+>>>>>>> 0391a3dcd18ee86f022e4f9aa6ff1e66e217f835
                 print(self.robot_odom.originx)
                 print(self.robot_odom.originy)
                 print(self.in_exclusion_zone())
