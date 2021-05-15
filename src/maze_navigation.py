@@ -71,6 +71,7 @@ class maze_navigation:
         self.right_min_distance = right_front_arc.min()
         self.right_min_angle = right_arc_angles[np.argmin(right_front_arc)]
 
+<<<<<<< HEAD
     def set_coordinate(self):
         self.robot_odom.posx0 = self.robot_odom.posx
         self.robot_odom.posy0 = self.robot_odom.posy
@@ -92,6 +93,12 @@ class maze_navigation:
             return True
         else:
             #print ("Yaw0 - Yaw not >= Angle")
+=======
+    def has_turned_angle(self, angle):
+        if abs(self.robot_odom.yaw0 - self.robot_odom.yaw) >= angle:
+            return True
+        else:
+>>>>>>> 20ce3bdfe6aff70097599abca8447ff413764ddb
             return False
 
     def detect_obj_front(self, angle_l, angle_r, distance):

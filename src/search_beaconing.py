@@ -17,19 +17,32 @@ class search_beaconing:
         self.detect_colour = False
         self.found_colour = False
 
-        """
+
         self.bootup = True
         self.start_bootup = True
         """
         self.bootup = False
         self.start_bootup = False
+        """
 
         self.start_position = False
 
-        self.search = True
+        self.scan_interval = 3.9
+
+        self.search = False
+
+        self.jiggle_counter_l = 0
+        self.jiggle_counter_r = 0
+        self.reset_jiggle_counter = False
+
+        self.test = False
+        self.test1 = False
+        self.test2 = False
 
         self.forward_speed = 0.2
-        self.turn_speed = 0.3
+        self.turn_speed = 0.5
+
+        self.count = 0
 
         rospy.init_node('search_beaconing_node', anonymous=True)
         self.rate = rospy.Rate(10)
@@ -57,7 +70,7 @@ class search_beaconing:
         self.m00_min = 10000
 
         self.colours = ['Blue','Red','Green','Turquoise','Yellow','Purple']
-        self.lower = [(115, 224, 100), (0, 185, 100), (55, 150, 100), (75, 50, 150), (20, 100, 100), (146, 150, 100)]
+        self.lower = [(115, 224, 100), (0, 185, 100), (55, 150, 100), (75, 150, 100), (20, 100, 100), (146, 150, 100)]
         self.upper = [(130, 255, 255), (10, 255, 255), (62, 255, 255), (100, 255, 255), (30, 255, 255), (153, 255, 255)]
 
         self.mask = None
@@ -71,7 +84,7 @@ class search_beaconing:
 
         height, width, channels = cv_img.shape
         crop_width = width - 800
-        crop_height = 400
+        crop_height = 100#400
         crop_x = int((width/2) - (crop_width/2))
         crop_y = int((height/2) - (crop_height/2))
 
@@ -151,6 +164,12 @@ class search_beaconing:
         else:
             return False
 
+    def detect_freespace_front(self, angle_l, angle_r, distance):
+        if self.front_min_angle >= angle_l and self.front_min_angle <= angle_r and self.front_min_distance >= distance:
+            return True
+        else:
+            return False
+
     def detect_obj_left(self, angle_l, angle_r, distance):
         if self.left_min_angle >= angle_l and self.left_min_angle <= angle_r and self.left_min_distance <= distance:
             return True
@@ -211,13 +230,14 @@ class search_beaconing:
         scan = False
         count = 0
         left_wall_adjustment = False
+        escape_corner = False
 
         while not self.ctrl_c:
             if self.bootup == True:
                 self.startup()
             elif self.start_position == True:
                 if check_right_wall == True:
-                    right_wall = self.detect_obj_right(50, 60, 1)
+                    right_wall = self.detect_obj_right(70, 110, 1)
                     check_right_wall = False
                 if right_wall == True:
                     self.robot_controller.set_move_cmd(angular=self.turn_speed)
@@ -236,74 +256,111 @@ class search_beaconing:
                         self.start_position = False
                         self.search = True
             elif self.search == True:
-                self.robot_controller.set_move_cmd(linear=self.forward_speed)
+                #print("jiggle counter: l = {:.3f}, r = {:.3f}".format(self.jiggle_counter_l, self.jiggle_counter_r))
+                print("distance travelled: d = {:.3f}".format(sqrt(pow(self.robot_odom.posx0 - self.robot_odom.posx, 2) + pow(self.robot_odom.posy0 - self.robot_odom.posy, 2))))
                 if scan == True:
-                    if count <= 4:
-                        self.robot_controller.set_move_cmd(angular=self.turn_speed)
-                        if self.has_turned_angle(90):
-                            self.robot_controller.stop()
-                            self.set_orientation()
-                            self.set_coordinate()
-                            count+=1
+                    print("scanning")
+                    if self.count < 100000:
+                        self.robot_controller.set_move_cmd(angular=0.3)
+                        if self.m00 > self.m00_min:
+                            if self.cy >= 560-100 and self.cy <= 560+100:
+                                print(self.robot_odom.originx)
+                                print(self.robot_odom.originy)
+                                self.robot_controller.stop()
+                                self.search = False
+                                self.test1 = True
+                        self.count += 1
                     else:
-                        count = 0
+                        self.robot_controller.stop()
+                        self.set_orientation()
+                        self.set_coordinate()
+                        self.count = 0
                         scan = False
                 else:
-                    if self.has_moved_distance(7):
+                    if self.has_moved_distance(self.scan_interval):
                         self.robot_controller.stop()
                         self.set_orientation()
                         self.set_coordinate()
                         scan = True
                     else:
-                        if self.front_min_distance<0.5:
-                            self.set_orientation()
-                            wall_adjustment = True
-                            if wall_adjustment == True:
-                                self.robot_controller.set_move_cmd(angular=-0.4)
-                                if self.has_turned_angle(90):
-                                    self.robot_controller.stop()
-                                    wall_adjustment = False
-                        if self.detect_obj_left(-90,-71,0.5) and self.front_min_distance<0.5:
-                            self.set_orientation()
-                            wall_adjustment = True
-                            if wall_adjustment == True:
-                                self.robot_controller.set_move_cmd(angular=-0.4)
-                                if self.has_turned_angle(90):
-                                    self.robot_controller.stop()
-                                    wall_adjustment = False
-                        elif self.detect_obj_left(-90,-71,0.5):
-                            wall_adjustment = True
-                            if wall_adjustment == True:
-                                self.robot_controller.set_move_cmd(angular=-0.4)
-                                if self.left_min_angle == -90:
-                                    wall_adjustment = False
-                        elif self.detect_obj_right(70,90,0.5) and self.front_min_distance<0.5:
-                            self.set_orientation()
-                            wall_adjustment = True
-                            if wall_adjustment == True:
-                                self.robot_controller.set_move_cmd(angular=0.4)
-                                if self.has_turned_angle(90):
-                                    self.robot_controller.stop()
-                                    wall_adjustment = False
-                        elif self.detect_obj_right(70,90,0.5):
-                            wall_adjustment = True
-                            if wall_adjustment == True:
-                                self.robot_controller.set_move_cmd(angular=0.4)
-                                if self.right_min_angle == -90:
-                                    wall_adjustment = False
-                        elif self.detect_obj_left(-90,-71,0.5) and self.detect_obj_right(70,90,0.5):
-                            wall_adjustment = True
-                            if wall_adjustment == True:
-                                if count <= 2:
-                                    self.robot_controller.set_move_cmd(angular=self.turn_speed)
-                                    if self.has_turned_angle(90):
-                                        self.robot_controller.stop()
-                                        self.set_orientation()
-                                        self.set_coordinate()
-                                        count+=1
-                                else:
-                                    count = 0
-                                    wall_adjustment = False
+                        if self.detect_freespace_front(-20,20,1):
+                            self.robot_controller.set_move_cmd(linear=self.forward_speed)
+                            self.jiggle_counter_l = 0
+                            self.jiggle_counter_r = 0
+                        else:
+                            if self.jiggle_counter_l >= 6 and self.jiggle_counter_r >= 6:
+                                print("Stuck in corner")
+                                escape_corner = True
+                            else:
+                                wall_adjustment = True
+                                if wall_adjustment == True:
+                                    if self.front_min_angle < 0:
+                                        self.robot_controller.set_move_cmd(angular=-self.turn_speed)
+                                        self.jiggle_counter_l += 1
+                                        wall_adjustment = False
+                                    else:
+                                        self.robot_controller.set_move_cmd(angular=self.turn_speed)
+                                        self.jiggle_counter_r += 1
+                                        wall_adjustment = False
+                                elif escape_corner == True:
+                                    if self.front_min_angle < 0:
+                                        self.robot_controller.set_move_cmd(angular=-self.turn_speed)
+                                        if self.has_turned_angle(90):
+                                            self.robot_controller.stop()
+                                            escape_corner = False
+                                            self.reset_jiggle_counter = True
+                                    else:
+                                        self.robot_controller.set_move_cmd(angular=self.turn_speed)
+                                        if self.has_turned_angle(90):
+                                            self.robot_controller.stop()
+                                            escape_corner = False
+                                            self.reset_jiggle_counter = True
+            elif self.test1 == True:
+                self.robot_controller.set_move_cmd(linear=self.forward_speed)
+                if self.in_exclusion_zone():
+                    self.robot_controller.stop()
+                    self.test1 = False
+                    self.test2 = True
+                elif self.detect_obj_front(-20,20,0.4) and not self.in_exclusion_zone():
+                    print("there now")
+                    self.ctrl_c = True
+            elif self.test2 == True:
+                if self.count < 150000:
+                    self.robot_controller.set_move_cmd(angular=self.turn_speed)
+                    """
+                    if self.detect_obj_left(-90,-71,0.5):
+                        wall_adjustment = True
+                        if wall_adjustment == True:
+                            self.robot_controller.set_move_cmd(angular=-0.4)
+                            if self.left_min_angle == -90:
+                                wall_adjustment = False
+                    elif self.detect_obj_right(70,90,0.5):
+                        wall_adjustment = True
+                        if wall_adjustment == True:
+                            self.robot_controller.set_move_cmd(angular=0.4)
+                            if self.right_min_angle == 90:
+                                wall_adjustment = False
+                    """
+                    self.count += 1
+                else:
+                    self.count = 0
+                    print("turned away")
+                    self.set_orientation()
+                    self.set_coordinate()
+                    self.robot_controller.stop()
+                    self.test2 = False
+
+            """
+            elif self.test == True:
+                self.robot_controller.set_move_cmd(angular=-self.turn_speed)
+                if self.m00 > self.m00_min:
+                    if self.cy >= 560-100 and self.cy <= 560+100:
+                        print(self.robot_odom.originx)
+                        print(self.robot_odom.originy)
+                        self.robot_controller.stop()
+                        self.test = False
+                        self.test1 = True
+            """
 
 
 
