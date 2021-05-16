@@ -73,7 +73,7 @@ class avoid:
         total_distance = 0.0
 
         while not self.ctrl_c:
-            self.robot_controller.set_move_cmd(linear=0.26)
+            self.robot_controller.set_move_cmd(linear=0.22) # was 0.26
             self.robot_controller.publish()
             x0 = self.robot_odom.posx
             y0 = self.robot_odom.posy
@@ -92,12 +92,12 @@ class avoid:
                     while self.front_min_distance<0.5 and not self.ctrl_c:
                         self.robot_controller.set_move_cmd(angular=0.5)
                         self.robot_controller.publish()
-            elif self.left_min_distance<=0.5 and self.right_min_distance<=0.5 and not self.ctrl_c:
+            elif self.left_min_distance<=0.6 and self.right_min_distance<=0.6 and not self.ctrl_c: # was 0.5
                 print("DETECTED A NARROW GAP")
                 self.robot_controller.stop()
-                while self.left_min_distance<=0.5 and self.right_min_distance<=0.5 and not abs(abs(self.left_min_angle) - abs(self.right_min_angle))<=5 and not self.ctrl_c:
-                    # self.left_min_angle == -61 and self.right_min_angle == 60
-                    # self.left_min_angle != self.right_min_angle
+                while self.left_min_distance<=0.6 and self.right_min_distance<=0.6 and not abs(abs(self.left_min_angle) - abs(self.right_min_angle))<=5 and not self.ctrl_c: # was 0.5
+                    self.left_min_angle == -61 and self.right_min_angle == 60
+                    self.left_min_angle != self.right_min_angle
                     if abs(self.left_min_angle) > abs(self.right_min_angle):
                         print("CASE 1")
                         self.robot_controller.set_move_cmd(angular=0.1)
