@@ -19,6 +19,7 @@ class maze_navigation:
         self.turn_left_90 = False
         self.turn_left_180 = False
         self.turn_right_180 = False
+        self.turn_initiated = False
         self.forward = True
         self.found_wall = False
         self.following_wall = False
@@ -132,8 +133,9 @@ class maze_navigation:
                 print ("Going Forward")
                 self.robot_controller.set_move_cmd(linear=self.forward_speed)
 
-                if self.front_min_distance < 0.5 and self.front_min_angle > -5 and self.front_min_angle < 5 and self.front_min_distance != 0 and self.front_min_angle != 0:
+                #if self.front_min_distance < 0.5 and self.front_min_angle > -5 and self.front_min_angle < 5 and self.front_min_distance != 0 and self.front_min_angle != 0:
 
+                if self.detect_obj_front(-5, 5, 0.5) and self.front_min_distance != 0 and self.front_min_angle != 0:
                     print ("Front - Detected Object")
 
                     self.robot_controller.stop()
@@ -145,35 +147,69 @@ class maze_navigation:
             elif self.found_wall == True: # Find a wall
                 print ("Found Wall")
                 self.found_wall = False
-                self.turn_right_90 = True
+                self.turn_initiated = True
 
-            elif self.turn_right_90 == True: # Turn right
+            elif self.turn_initiated == True: # Turn right
                 #print ("Turning Right")
                 self.robot_controller.stop()
                 self.robot_odom.yaw0 = self.robot_odom.yaw
                 self.set_orientation()
                 self.set_coordinate()
 
-                if self.detect_obj_left(-90,-71,0.5):
+                #if self.detect_obj_left(-90,-71,0.5):
 
-                    print ("Detected object - left")
+                    #print ("Detected object - left")
 
-                    wall_adjustment = True
-                    if wall_adjustment == True:
-                        self.robot_controller.set_move_cmd(angular=-0.4)
-                        print ("Wall adjustment is true")
+                    #wall_adjustment = True
+                    #if wall_adjustment == True:
+                        #self.robot_controller.set_move_cmd(angular=-0.4)
+                        #print ("Wall adjustment is true")
 
-                        if self.left_min_angle == -90:
-                            wall_adjustment = False
+                        #if self.left_min_angle == -90:
+                            #wall_adjustment = False
 
-                            print ("Wall adjustment now false")
+                            #print ("Wall adjustment now false")
 
-                            self.set_orientation()
-                            self.set_coordinate()
+                            #self.set_orientation()
+                            #self.set_coordinate()
 
-                else:
-                    self.turn_right_90 = False
-                    self.following_wall = True
+                    #elif self.detect_obj_right(70, 110, 1):
+
+                        #print ("Detected object - right")
+
+                        #wall_adjustment = True
+                        #if wall_adjustment == True:
+                            #self.robot_controller.set_move_cmd(angular=-0.4)
+                            #print ("Wall adjustment is true")
+
+                            #if self.right_min_angle == 70:
+                                #wall_adjustment = False
+
+                                #print ("Wall adjustment now false")
+
+                                #self.set_orientation()
+                                #self.set_coordinate()
+
+                    #elif self.detect_obj_front():
+                        #print ("Detected object - front")
+
+                        #wall_adjustment = True
+                        #if wall_adjustment == True:
+                            #self.robot_controller.set_move_cmd(angular=-0.4)
+                            #print ("Wall adjustment is true")
+
+                            #if self.right_min_angle == 70:
+                                #wall_adjustment = False
+
+                                #print ("Wall adjustment now false")
+
+                                #self.set_orientation()
+                                #self.set_coordinate()
+
+
+                #else:
+                    #self.turn_right_90 = False
+                    #self.following_wall = True
 
                     #self.turn_right_90 = False
 
