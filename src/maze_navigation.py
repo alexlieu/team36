@@ -130,13 +130,13 @@ class maze_navigation:
         while not self.ctrl_c:
             if self.forward == True: # Set off out start zone
 
-                print ("Going Forward")
+                #print ("Going Forward")
                 self.robot_controller.set_move_cmd(linear=self.forward_speed)
 
                 #if self.front_min_distance < 0.5 and self.front_min_angle > -5 and self.front_min_angle < 5 and self.front_min_distance != 0 and self.front_min_angle != 0:
 
                 if self.detect_obj_front(-5, 5, 0.5) and self.front_min_distance != 0 and self.front_min_angle != 0:
-                    print ("Front - Detected Object")
+                    #print ("Detected object - front")
 
                     self.robot_controller.stop()
                     self.set_orientation()
@@ -145,7 +145,7 @@ class maze_navigation:
                     self.found_wall = True
 
             elif self.found_wall == True: # Find a wall
-                print ("Found Wall")
+                #print ("Found Wall")
                 self.found_wall = False
                 self.turn_initiated = True
 
@@ -161,24 +161,26 @@ class maze_navigation:
                 self.robot_controller.set_move_cmd(angular=-0.4)
                 #print ("Wall adjustment is true")
 
-                #print (self.left_min_angle)
+                print (self.left_min_angle)
 
 
-                if self.left_min_angle == -80:
+                if self.left_min_angle == -90:
 
-                    print ("Left min angle = -80")
+                    print ("Left min angle = -90")
 
-                    self.robot_controller.stop()
-                    self.robot_odom.yaw0 = self.robot_odom.yaw
+                    if self.detect_obj_front(-5, 5, 0.5) == False:
+
+                        self.robot_controller.stop()
+                        self.robot_odom.yaw0 = self.robot_odom.yaw
 
                         #wall_adjustment = False
 
                         #print ("Wall adjustment now false")
 
-                    self.set_orientation()
-                    self.set_coordinate()
-                    self.turn_initiated = False
-                    self.following_wall = True
+                    #self.set_orientation()
+                    #self.set_coordinate()
+                        self.turn_initiated = False
+                        self.following_wall = True
 
                 #if self.detect_obj_left(-90,-71,0.5):
 
@@ -242,14 +244,13 @@ class maze_navigation:
             elif self.following_wall == True: # Follow wall - go parallel to wall
                 print ("Following Wall")
 
-                #self.robot_controller.stop()
                 self.robot_odom.yaw0 = self.robot_odom.yaw
                 #self.robot_controller.set_move_cmd(linear=self.forward_speed)
 
+                #print ("Going Forward")
+                self.robot_controller.stop()
                 self.set_orientation()
                 self.set_coordinate()
-
-                print ("Going Forward")
                 self.robot_controller.set_move_cmd(linear=self.forward_speed)
 
 
