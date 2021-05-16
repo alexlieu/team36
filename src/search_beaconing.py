@@ -39,6 +39,7 @@ class search_beaconing:
         # start_position A
         # x = -2.078, y = -1.47
         # scan_interval 1.5
+>>>>>>> 43ab28d27defdeb271bfe0a20c83496944152ac2
 
         self.search = False
 
@@ -49,6 +50,7 @@ class search_beaconing:
         self.in_vision = False
 
         self.test3 = False
+>>>>>>> 43ab28d27defdeb271bfe0a20c83496944152ac2
         self.test1 = False
         self.test2 = False
 
@@ -303,6 +305,7 @@ class search_beaconing:
             self.robot_controller.set_move_cmd(linear=self.forward_speed)
             if self.has_moved_distance(0.5):
                 """
+>>>>>>> 43ab28d27defdeb271bfe0a20c83496944152ac2
                 print(self.robot_odom.originx)
                 print(self.robot_odom.originy)
                 print(self.in_exclusion_zone())
