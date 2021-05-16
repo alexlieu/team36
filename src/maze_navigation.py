@@ -183,22 +183,26 @@ class maze_navigation:
 
                     #self.set_orientation()
                     #self.set_coordinate()
-                        self.turn_initiated = False
                         self.turn_count += 1
-                        self.following_wall = True
+                        #self.turn_initiated = False
+                        #self.following_wall = True
 
-                    elif turn_count > 0:
+                    elif self.turn_count >= 1 :
 
-                        self.robot_controller.set_move_cmd(angular=-0.4)
+                        #self.robot_controller.set_move_cmd(angular=-0.4)
+
+                        print (self.left_min_angle)
 
                         if self.left_min_angle == -180:
 
                             self.robot_controller.stop()
                             self.robot_odom.yaw0 = self.robot_odom.yaw
 
-                            self.turn_initiated = True
-                            self.following_wall = False
+                    self.turn_initiated = False
+                    self.following_wall = True
 
+                            #self.turn_initiated = True
+                            #self.following_wall = False
 
                 #if self.detect_obj_left(-90,-71,0.5):
 
