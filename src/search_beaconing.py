@@ -39,6 +39,7 @@ class search_beaconing:
         # start_position A
         # x = -2.078, y = -1.47
         # scan_interval 1.5
+>>>>>>> f5d80b679ae26a1520cca688521be0f13b57ae33
 
         self.search = False
 
@@ -49,6 +50,7 @@ class search_beaconing:
         self.in_vision = False
 
         self.test3 = False
+>>>>>>> f5d80b679ae26a1520cca688521be0f13b57ae33
         self.test1 = False
         self.test2 = False
 
@@ -138,6 +140,7 @@ class search_beaconing:
         self.front_min_distance = front_front_arc.min()
         self.front_min_angle = front_arc_angles[np.argmin(front_front_arc)]
 
+
         left_left_arc = scan_data.ranges[90:111]#scan_data.ranges[40:61]
         left_right_arc = scan_data.ranges[71:90]#scan_data.ranges[21:40]
         left_front_arc = np.array(left_left_arc[::-1] + left_right_arc[::-1])
@@ -151,6 +154,25 @@ class search_beaconing:
         right_arc_angles = np.arange(70,110)#np.arange(20, 60)
         self.right_min_distance = right_front_arc.min()
         self.right_min_angle = right_arc_angles[np.argmin(right_front_arc)]
+
+        # ==========
+        # FOR SOME REASON CHANGING THIS MAKES THE ROBOT TURN THE WRONG WAY WHEN DETECTING WALL ON THE RIGHT.
+        # ==========
+        """
+        left_left_arc = scan_data.ranges[40:61]
+        left_right_arc = scan_data.ranges[21:40]
+        left_front_arc = np.array(left_left_arc[::-1] + left_right_arc[::-1])
+        left_arc_angles = np.arange(-61, -21)
+        self.left_min_distance = left_front_arc.min()
+        self.left_min_angle = left_arc_angles[np.argmin(left_front_arc)]
+
+        right_left_arc = scan_data.ranges[-40:-20]
+        right_right_arc = scan_data.ranges[-60:-40]
+        right_front_arc = np.array(right_left_arc[::-1] + right_right_arc[::-1])
+        right_arc_angles = np.arange(20, 60)
+        self.right_min_distance = right_front_arc.min()
+        self.right_min_angle = right_arc_angles[np.argmin(right_front_arc)]
+        """
 
     def shutdownhook(self):
         self.shutdown_function()
@@ -283,6 +305,7 @@ class search_beaconing:
             self.robot_controller.set_move_cmd(linear=self.forward_speed)
             if self.has_moved_distance(0.5):
                 """
+>>>>>>> f5d80b679ae26a1520cca688521be0f13b57ae33
                 print(self.robot_odom.originx)
                 print(self.robot_odom.originy)
                 print(self.in_exclusion_zone())
